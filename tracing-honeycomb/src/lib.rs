@@ -32,6 +32,9 @@ use parking_lot::Mutex;
 #[cfg(not(feature = "use_parking_lot"))]
 use std::sync::Mutex;
 
+// export core libhoney dependency
+pub use libhoney;
+
 /// Register the current span as the local root of a distributed trace.
 ///
 /// Specialized to the honeycomb.io-specific SpanId and TraceId provided by this crate.
@@ -154,20 +157,6 @@ impl Builder<LibhoneyReporter> {
     /// Returns a new `Builder` that reports data to a [`libhoney::Client`]
     pub fn new_libhoney(service_name: &'static str, config: libhoney::Config) -> Self {
         let reporter = libhoney::init(config);
-
-        // Handle the libhoney response channel by consuming and ignoring messages. This prevents a
-        // deadlock because the responses() channel is bounded and gains an item for every event
-        // emitted.
-        let responses = reporter.responses();
-        std::thread::spawn(move || {
-            loop {
-                if responses.recv().is_err() {
-                    // If we receive an error, the channel is empty & disconnected. No need to keep
-                    // this thread around.
-                    break;
-                }
-            }
-        });
 
         // publishing requires &mut so just mutex-wrap it
         // FIXME: may not be performant, investigate options (eg mpsc)
