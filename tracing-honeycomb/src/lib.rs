@@ -25,6 +25,9 @@ pub use visitor::HoneycombVisitor;
 
 pub(crate) mod deterministic_sampler;
 
+// export core libhoney dependency
+pub use libhoney;
+
 /// Register the current span as the local root of a distributed trace.
 ///
 /// Specialized to the honeycomb.io-specific SpanId and TraceId provided by this crate.
